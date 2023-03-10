@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>H517 P1 Documentation</title>
+    <style media="screen">
+      .bodystyle {
+        margin: 30px;
+      }
+      .bodystyle h3 {
+        margin-bottom:-10px;  }
+
+      .bodystyle h4 {
+        margin-bottom:-10px;  }
+
+      .simages img {
+        display:inline-block;
+        height:250px;
+        width: 400px;
+      }
+
+    </style>
+  </head>
+
+  <body class="bodystyle">
+    <div class="menu">
+      <a href="index.html">Interactive Map</a>
+      <a href="documentation.html">Documentation</a>
+      <a href="about.html">About</a>
+    </div>
+
+    <h3>Link to Youtube video chart interaction demonstration</h3>
+
+    <h3>Beginning Design Process</h3>
+      <div style="margin-left:10px;">
+        <p>When I first began thinking about how I was going to place the map and other information on the web page I knew I was going to have a menu at the top followed by a heading explaining what the viewer was looking at. I planned to have the map below. I originally had the deaths per day chart below the map and shown horizontially. I realized that it would be eaiser if the user could see the day chart as they were looking at the map so they could select a day while viewing the map.</p>
+        <p>In regards to the map design I began by loading all the death datapoints and pumps as cirles on the lines. At first I was only cycling through the first two lines in the json file so not all of the lines of the map were showing. Once I realized this, I fixed it, which provided a more complete map. I originally had the death dots colored red and the pumps blue, but it was difficult to see the pumps among the red dots. I changed the red death does to gray which helped, but realized that a change in shape might make things easier. I changed the pumps to be crosses instead of circles which helped separate them more.</p>
+        <p> For the sections of filters (Age Range, Gender, and Clusters) I began with age ranges and had them as buttons but discovered you couldn't select more than one at a time and that the viewer may want to see two age groups at a time so they could compare them. I changed them to checkboxes and did the same for the gender selection.</p>
+        <p>Overall, how I planned my time working on the project and how I progressed through the project. I followed the bulleted lists on the project assignment that listed what needed to be completed to recieve a 'C', 'B', and 'A'. I worked my way from C to A working through the tasks in each one building on the previous So I completed things needed for a C before moving to items needed for a B, etc.</p>
+      </div>
+
+    <h3>Sketches</h3>
+      <div style="margin-left:10px; margin-top:15px;" class="simages">
+        <img src="sketch1.jpg" alt="Sketch of Map Page Layout #1">
+        <img src="sketch2.jpg" alt="Sketch of Map Page Layout #2">
+        <img src="sketch3.jpg" alt="Sketch of Map Page Layout #3">
+      </div>
+
+    <h3>Thoughts throughout Development</h3>
+      <div style="margin-left:10px;">
+        <p>Quite a few things were adjusted and changed as I was coding the map and corresponding filters.</p>
+        <h4>Colors</h4>
+        <p>Throughout the process I used high contrasting colors so that I would be able to tell if something was working. Towards the end when I had all the technical components working is when I changed the colors to be more cohesive and allow accesibility by using a color blindness checker.</p>
+        <h4>Coding</h4>
+        <p>As I worked my way through one task such as figuring out how to cluster the data and allow the user to select the size of the cluster and then clearing the clusters from the map helped when I went to have the user select a range of days.</p>
+        <h4>Using Resources</h4>
+        <p>Initially I was able to write a good chunk of code but would Google things such as checkboxes in html just to remind myself how that was set up. I have coded in html before, but it has been awhile so I breifly glanced at some resources to remind myself of structures etc. before continuing to code. I realized that a lot of things once you figured out how it worked and how to get it to work properly could be applied to other sections throughout the code.</p>
+      </div>
+
+    <h3>Takeaways</h3>
+      <div style="margin-left:10px;">
+        <h4>Discovered in Map</h4>
+        <p>As I was coding and testing features I came across a number of things that the original John Snow map or just a glance at the data would be difficult to learn. I've listed them below.</p>
+        <ul>
+          <li>There are almost an equal number of Male and Female deaths</li>
+          <li>The two age ranges with the most deaths were 'o-10' and '> 80', which make sense since they would be the youngest and oldest of the population. I think this is also interesting as we recently saw this same pattern with the recent COVID-19 pandemic.</li>
+          <li>Most of the deaths were centered around the pump central to town and near the Brewery</li>
+          <li>There were few deaths at the beginning but they grew exponentially from the 8th of August to September 2nd when before they started to decrease and taper out again</li>
+        </ul>
+      </div>
+
+    <h3>Resources</h3>
+      <div style="margin-left:10px;">
+        <p style="margin-bottom:0px;">Links:</p>
+        <a href="https://coderwall.com/p/psogia/simplest-way-to-add-zoom-pan-on-d3-js">Resource for adding Zoom to Map</a>
+        <br>
+        <a href="https://www.youtube.com/watch?v=OJxEcs0w_kE&t=1708s">Youtube video resource for creating a Quadtree</a>
+        <br>
+      </div>
+
+
+
+
+  </body>
+</html>

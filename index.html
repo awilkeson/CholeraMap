@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>H517 Project 1</title>
+  <script type="text/javascript" src="./d3.v3.js"></script>
+  <script src="quadtree.js"></script>
+
+  <style media="screen">
+    div.bar {
+      display: inline-block;
+      width: 20px;
+      height: 75px;
+      background-color: teal;
+      margin-right: 2px;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: black;
+      shape-rendering: crispEdges;
+    }
+
+    .axis text {
+      font-family: sans-serif;
+      font-size: 11px;
+    }
+
+    .bodystyle {
+      margin: 30px;
+    }
+
+    div.reddeath {
+      width: 500px;
+    }
+
+    div.pump {
+      width: 500px;
+    }
+
+    div.agefilter {
+      width: 800px;
+    }
+
+    div.barchart {
+      width: 800px;
+    }
+
+
+    p {
+      font-size: 20px;
+      position: relative;
+    }
+
+    #barchart {
+      display:inline;
+      margin-top: -240px;
+      width: 400px;
+      margin-left: 50px;
+      position: absolute;
+
+    }
+
+    #barchart svg {
+      display: inline;
+    }
+    #choleramap {
+      display:inline-block;
+      border: 1px dashed gray;
+      }
+
+    #legend {
+      margin:10px;
+      width: 125px;
+      height: 70px;
+      border: 1px solid black;
+      padding: 5px;
+    }
+    #legend svg {
+      margin-top:2px;
+      height: 10px;
+      width: 30px;
+      align:right;
+    }
+    #legend p2 {
+      font-size:15px;
+    }
+    .agecolor svg {
+      margin-top:2px;
+      height: 10px;
+      width: 10px;
+      align:right;
+    }
+
+    #deathbysexchart {
+      display:inline-block;
+      margin-right:50px;}
+
+    #deathbyagechart {
+      display:inline-block;
+      margin-right:50px;}
+
+    #mapinfo {
+      display:inline-block;
+        margin:5px;
+      }
+
+    .agebar {fill:lightblue;}
+
+    .cluster {
+      display:inline-block;
+      margin-right:25px;
+      margin-top:-10px;
+    }
+
+    .edr {display:inline-block;}
+    .bdr {display:inline-block;}
+
+    .tooltip {
+      /* height:45px; */
+      width:150px;
+      font-size: 18px;
+      padding:5px;
+      background-color: white;
+      border: 2px solid black;
+      border-radius: 15px;
+    }
+
+  </style>
+
+</head>
+
+<body class="bodystyle">
+  <div class="menu">
+    <a href="index.html">Interactive Map</a>
+    <a href="documentation.html">Documentation</a>
+    <a href="about.html">About</a>
+  </div>
+
+  <div>
+    <h2>An Interactive Recreation of Dr. John Snow's map of the 1854 Cholera Epidemic </h2></div>
+
+  <!-- Check box -->
+  <p style="margin-bottom:3px;">Age Ranges</p>
+  <div style="margin-left:5px;" class="agecolor">
+    <p2>Check a box below to view where the deaths of people in that age range are on the map.</p2>
+    <br>
+    <input type="checkbox" class="checkbox" value="age0"><label><svg id="agecolor1"></svg>Ages 0 - 10</label>
+    <input type="checkbox" class="checkbox" value="age1"><label><svg id="agecolor2"></svg>Ages 11 - 20</label>
+    <input type="checkbox" class="checkbox" value="age2"><label><svg id="agecolor3"></svg>Ages 21 - 40</label>
+    <input type="checkbox" class="checkbox" value="age3"><label><svg id="agecolor4"></svg>Ages 41 - 60</label>
+    <input type="checkbox" class="checkbox" value="age4"><label><svg id="agecolor5"></svg>Ages 61 - 80</label>
+    <input type="checkbox" class="checkbox" value="age5"><label><svg id="agecolor6"></svg>Ages > 80</label>
+  </div>
+
+  <p style="margin-bottom:3px;">Gender</p>
+  <div style="margin-left:5px;" class="agecolor">
+    <p2>Check the box below for Female or Male to view those deaths on the map.</p2>
+    <br>
+    <input type="checkbox" class="checkbox2" value="male" ><label><svg id="gcolor1"></svg>Male</label>
+    <input type="checkbox" class="checkbox2" value="female" ><label><svg id="gcolor2"></svg>Female</label>
+  </div>
+
+<p style="margin-bottom:-20px;">Clusters</p>
+<div style="margin-left:5px; margin-bottom:10px;" class="cluster";>
+<p2>Once clusters are loaded you can click on a cluster to "open" it and view the death locations within that <br>cluster. You can either continue clicking clusters, choose to change cluster size, or clear the clusters. </p2>
+<form>
+  <p style="margin-bottom:3px; font-size:16px;">Cluster Size:
+  <select id="clustern">
+    <option>10</option>
+    <option>9</option>
+    <option>8</option>
+    <option>7</option>
+    <option>6</option>
+    <option>5</option>
+    <option>4</option>
+    <option>3</option>
+    <option>2</option>
+  </select></p>
+</form>
+<button id="clusterupdate">Update Clusters</button>
+<button id="reveal-quadtree">Clear the Clusters</button>
+<br>
+</div>
+
+  <div id="mapinfo">
+    <p style="font-size: 16px; margin-bottom:-10px;">Legend</p>
+    <div id="legend">
+      <svg id="legenddeath"></svg><p2>Death</p2>
+      <br>
+      <svg id="legendpump"></svg><p2>Water Pump</p2>
+      <br>
+      <svg id="legendbrewery"></svg><p2>Brewery</p2>
+      <br>
+      <svg id="legendhouse"></svg><p2>Work House</p2>
+    </div>
+  </div>
+
+<!-- cholera map -->
+  <div id="choleramap"></div>
+
+  <div id="barchart">
+    <p style="margin-bottom:3px;">Deaths per Day (Aug-Sep 1854)</p>
+    <p2>The chart below displays the number of deaths each day during August and September of the 1854 Cholera outbreak in London. Select a day (by date or bar) to view those deaths on the map. You can also select dates from the range selections below to view deaths over multiple days on the map.</p2>
+    <div class="bdr">
+    <form>
+      <p style="margin-bottom:0px; font-size:16px;">From:
+      <select id="begindayrange">
+        <option>19-Aug</option><option>20-Aug</option><option>21-Aug</option><option>22-Aug</option>
+        <option>23-Aug</option><option>24-Aug</option><option>25-Aug</option><option>26-Aug</option>
+        <option>27-Aug</option><option>28-Aug</option><option>29-Aug</option><option>30-Aug</option>
+        <option>31-Aug</option><option>1-Sep</option><option>2-Sep</option><option>3-Sep</option>
+        <option>4-Sep</option><option>5-Sep</option><option>6-Sep</option><option>7-Sep</option>
+        <option>8-Sep</option><option>9-Sep</option><option>10-Sep</option><option>11-Sep</option>
+        <option>12-Sep</option><option>13-Sep</option><option>14-Sep</option><option>15-Sep</option>
+        <option>16-Sep</option><option>17-Sep</option><option>18-Sep</option><option>19-Sep</option>
+        <option>20-Sep</option><option>21-Sep</option><option>22-Sep</option><option>23-Sep</option>
+        <option>24-Sep</option><option>25-Sep</option><option>26-Sep</option><option>27-Sep</option>
+        <option>28-Sep</option><option>29-Sep</option>
+      </select></p>
+    </form>
+  </div>
+    <div class="edr">
+    <form>
+      <p style="margin-bottom:0px; font-size:16px;">To:
+      <select id="enddayrange">
+        <option>19-Aug</option><option>20-Aug</option><option>21-Aug</option><option>22-Aug</option>
+        <option>23-Aug</option><option>24-Aug</option><option>25-Aug</option><option>26-Aug</option>
+        <option>27-Aug</option><option>28-Aug</option><option>29-Aug</option><option>30-Aug</option>
+        <option>31-Aug</option><option>1-Sep</option><option>2-Sep</option><option>3-Sep</option>
+        <option>4-Sep</option><option>5-Sep</option><option>6-Sep</option><option>7-Sep</option>
+        <option>8-Sep</option><option>9-Sep</option><option>10-Sep</option><option>11-Sep</option>
+        <option>12-Sep</option><option>13-Sep</option><option>14-Sep</option><option>15-Sep</option>
+        <option>16-Sep</option><option>17-Sep</option><option>18-Sep</option><option>19-Sep</option>
+        <option>20-Sep</option><option>21-Sep</option><option>22-Sep</option><option>23-Sep</option>
+        <option>24-Sep</option><option>25-Sep</option><option>26-Sep</option><option>27-Sep</option>
+        <option>28-Sep</option><option>29-Sep</option>
+      </select></p>
+    </form>
+  </div>
+  <br>
+    <button id="dbarsupdate">Update Deaths on Map</button>
+    <button id="reset" style="margin-top:5px;"> Reset Number of Deaths on Map </button><br></div>
+<br>
+
+    <div id = "deathbysexchart"><p>Number of Deaths by Gender</p></div>
+    <div id = "deathbyagechart"><p>Number of Deaths by Age Range</p></div>
+
+    <!-- <div id="info"><p>created by: Ashley Wilkeson<br> data sourced from: </p></div> -->
+
+  <script type="text/javascript">
+
+    var pumps; //global variable
+    var streets;
+    var deaths;
+    var deathdays;
+
+    var numStreets = 528;
+    var numdeaths = 571;
+    var w = 850;
+    var h = 750;
+    var padding = 10;
+
+    var clusternum = 8;
+    var gridswitch = 1;
+
+    var deathsdataset = [];
+    var pumpsdataset = [];
+
+    var agerange_0 = []; //ages 0-10
+    var agerange_1 = []; //ages 11-20
+    var agerange_2 = []; //ages 21-40
+    var agerange_3 = []; //ages 41-60
+    var agerange_4 = []; //ages 61-80
+    var agerange_5 = []; //ages > 80
+
+    // var totaldeaths = 571;
+    d3.json("streets.json", function(json) {
+      streets = json;
+      printStreet();
+    });
+    d3.csv("pumps.csv", function(data) {
+      pumps = data;
+      printPump();
+    });
+    d3.csv("deaths_age_sex.csv", function(data) {
+      deaths = data;
+      printDeath(571);
+
+      deadbyage();
+      deadbysex();
+    });
+    d3.csv("deathdays.csv", function(data) {
+      deathdays = data;
+      showDays();
+    });
+
+    //______________________________________________________________ LEGEND ICONS BELOW ___________________________________________________________________________
+
+    var legendcross = d3.svg.symbol().type('cross').size(50);
+    var legendsquare = d3.svg.symbol().type('square').size(60);
+
+
+      d3.select('#legendpump')
+      .append('path')
+      .attr("d", legendcross)
+      .attr("transform","translate(10,5)")
+      .attr("fill", "royalblue");
+
+      d3.select('#legendbrewery')
+      .append('path')
+      .attr("d", legendsquare)
+      .attr("transform","translate(10,5)")
+      .attr("fill", "#c7e9b4");
+
+      d3.select('#legendhouse')
+      .append('path')
+      .attr("d", legendsquare)
+      .attr("transform","translate(10,5)")
+      .attr("fill", "#253494");
+
+      d3.select('#legenddeath')
+        .append('circle')
+        .attr("cx", 10)
+        .attr("cy", 5)
+        .attr("r", 5)
+        .attr("fill", "gray");
+
+        d3.select('#agecolor1').append('circle')
+          .attr("cx", 5).attr("cy", 5)
+          .attr("r", 5).attr("fill", "#762a83");
+
+        d3.select('#agecolor2').append('circle')
+          .attr("cx", 5).attr("cy", 5)
+          .attr("r", 5).attr("fill", "#af8dc3");
+
+        d3.select('#agecolor3').append('circle')
+          .attr("cx", 5).attr("cy", 5)
+          .attr("r", 5).attr("fill", "#e7d4e8");
+
+        d3.select('#agecolor4').append('circle')
+          .attr("cx", 5).attr("cy", 5)
+          .attr("r", 5).attr("fill", "#d9f0d3");
+
+        d3.select('#agecolor5').append('circle')
+          .attr("cx", 5).attr("cy", 5)
+          .attr("r", 5).attr("fill", "#7fbf7b");
+
+        d3.select('#agecolor6').append('circle')
+          .attr("cx", 5).attr("cy", 5)
+          .attr("r", 5).attr("fill", "#1b7837");
+
+        d3.select('#gcolor1').append('circle')
+          .attr("cx", 5).attr("cy", 5)
+          .attr("r", 5).attr("fill", "#3182bd");
+
+        d3.select('#gcolor2').append('circle')
+          .attr("cx", 5).attr("cy", 5)
+          .attr("r", 5).attr("fill", "#fbb4b9");
+
+
+    //______________________________________________________________ LEGEND ICONS ABOVE ___________________________________________________________________________
+
+    var tooltip = d3.select("#choleramap")
+      .append("div")
+      .attr("class","tooltip")
+      .style("position", "absolute")
+      .style("z-index", "10")
+      .style("visibility", "hidden");
+
+
+    //Create scale functions
+    var plotxScale = d3.scale.linear()
+      .domain([3, 20])
+      .range([0, w - padding * 2]);
+
+    var plotyScale = d3.scale.linear()
+      .domain([3, 20])
+      .range([h - padding, padding]);
+
+    //Create SVG element
+    var plotsvg = d3.select("#choleramap")
+      .append("svg")
+      .attr("width", w)
+      .attr("height", h)
+      .call(d3.behavior.zoom().on("zoom", function () {
+      plotsvg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+      }))
+      .append("g")
+      ;
+
+//______________________________________________________________ UPDATING MAP BELOW ___________________________________________________________________________
+
+    function resetmap() {
+      d3.selectAll(".checkbox").each(function(d) {
+        cb = d3.select(this);
+        cb.property("checked") = false;
+      })
+    }
+
+    function resetbar() {
+      d3.selectAll('rect.deathbar').each(function(d) {
+        // d3.select(this).attr("fill", "rgb(0, 0, " + (d.deaths * 10) + ")");
+        d3.select(this).attr("fill", "rgb(123,50," + (d.deaths * 10) + ")");
+      })
+    };
+
+
+    function reprintmap(d) {
+      // console.log("remove started");
+      setTimeout(function() {
+        printPump();
+        console.log("print " + d.deaths + " deaths");
+        printDeath(d.deaths);
+      }, 250);
+    }
+
+    d3.select("#reset").on("click", function() {
+      printDeath(571);
+      resetbar();
+    })
+
+    // 1b7837
+
+    function getClusterNum(){
+      var num = document.getElementById("clustern");
+      var option = num.options[num.selectedIndex].text;
+      clusternum = +option;
+      // gridswitch = 1;
+      printClusters();
+    }
+
+    function getdayRange(){
+      var b = document.getElementById("begindayrange");
+      var beginday = b.options[b.selectedIndex].text;
+      var e = document.getElementById("enddayrange");
+      var endday = e.options[e.selectedIndex].text;
+      printDays(beginday, endday);
+    }
+
+    d3.select('#dbarsupdate').on('click', function() {getdayRange(); });
+
+
+    function printDays(bd,ed){
+      var selecteddeaths = 0;
+      var bindex = 0;
+      var eindex = 0;
+      for (d = 0; d < deathdays.length; d++) {
+        if (deathdays[d].date == bd) {
+          bindex = d;}
+        if (deathdays[d].date == ed) {
+          eindex = d;}
+      }
+      for (d = bindex; d <= eindex; d++) {
+        selecteddeaths = selecteddeaths + (+deathdays[d].deaths);
+      }
+      printDeath(selecteddeaths)
+    } //end printDays function
+
+var genderselected = "";
+var ageselected = "";
+var checked = false; //TESTING
+
+    // This function is gonna change the color and size of selected and unselected age ranges
+    function updateage() {
+      ageselected = "";
+
+      // For each check box:
+      d3.selectAll(".checkbox").each(function(d) {
+        ageselcted = "";
+        cb = d3.select(this);
+        agegrp = cb.property("value")
+        color = "";
+
+        // Change color of elements in group
+        if (agegrp === "age0"){color = "#762a83"}
+        else if (agegrp === "age1"){color = "#af8dc3"}
+        else if (agegrp === "age2"){color = "#e7d4e8"}
+        else if (agegrp === "age3"){color = "#d9f0d3"}
+        else if (agegrp === "age4"){color = "#7fbf7b"}
+        else if (agegrp === "age5"){color = "#1b7837"}
+
+        // If the box is check, I show the group
+        if (cb.property("checked")) {
+          ageselected = ageselected + (" ." + agegrp );
+
+          // if (genderselected.includes(".male")){
+          //   console.log("Males should be showing");
+          //   plotsvg.selectAll(agegrp + genderselected).transition().duration(1000).attr("fill", color).attr("r", 4)
+          // } else
+          if (genderselected.includes(".female")){
+            plotsvg.selectAll(ageselected + ".female").transition().duration(1000).attr("fill", color).attr("r", 4);
+            plotsvg.selectAll(ageselected + ".male").transition().duration(1000).attr("fill", "lightgray").attr("r", 2).attr("stroke","gray").attr("stroke-width",".5");
+          }
+          if (genderselected === ""){
+            plotsvg.selectAll("." + agegrp).transition().duration(1000).attr("fill", color).attr("r", 4)
+          }
+          // Otherwise I hide it
+        } else {
+          plotsvg.selectAll("." + agegrp).transition().duration(1000).attr("fill", "lightgray").attr("r", 2).attr("stroke","gray").attr("stroke-width",".5");
+        }
+
+      })
+    }
+
+    // When a button change, I run the update function
+    d3.selectAll(".checkbox").on("change", updateage);
+
+    // And I initialize it at the beginning
+    updateage()
+
+
+    // This function is gonna change the color and size of selected and unselected age ranges
+    function updategender() {
+
+      // For each check box:
+      d3.selectAll(".checkbox2").each(function(d) {
+        cb = d3.select(this);
+        gendergrp = cb.property("value")
+        color = "";
+        // Change color of elements in group
+        if (gendergrp === "female"){color = "#fbb4b9"}
+        if (gendergrp === "male"){color = "#3182bd"}
+
+        // If the box is check, I show the group
+        if (cb.property("checked")) {
+          genderselected = " ." + gendergrp;
+
+          if (gendergrp === "male") {
+            if (ageselected != "") {
+              plotsvg.selectAll(genderselected + ageselected).transition().duration(1000).attr("fill", color).attr("r", 4);
+              updateage();
+            } else if (ageselected === ""){
+              plotsvg.selectAll(genderselected).transition().duration(1000).attr("fill", color).attr("r", 4)
+            }
+          }
+          if (gendergrp === "female"){
+            if (ageselected != "") {
+              plotsvg.selectAll(ageselected + ".female").transition().duration(1000).attr("fill", color).attr("r", 4);
+              updateage();
+            } else if (ageselected === ""){
+              plotsvg.selectAll(genderselected).transition().duration(1000).attr("fill", color).attr("r", 4)
+            }
+          }
+          // Otherwise I hide it
+        } else {
+          plotsvg.selectAll("." + gendergrp).transition().duration(1000).attr("fill", "lightgray").attr("r", 2).attr("stroke","gray").attr("stroke-width",".5")
+          // console.log("Gender: "+ gendergrp + "Updating Age...")
+          if (gendergrp === "male") {
+            if (ageselected != "") {
+              updateage();}
+          }
+          if (gendergrp === "female") {
+            if (ageselected != "") {
+              updateage();}
+          }
+        }
+      })
+      genderselected = "";
+    }
+
+    // When a button change, I run the update function
+    d3.selectAll(".checkbox2").on("change", updategender);
+
+    // And I initialize it at the beginning
+    updategender();
+
+
+    // gridswitch = 1;
+
+    function printClusters() {
+
+        let boundary = new Rectangle(425,375,w/2,h/2);
+        let qt = new QuadTree(boundary, clusternum);
+        var tree = qt;
+
+        for (let i=0; i <deathsdataset.length; i++) {
+          let p = new Point(plotxScale(deathsdataset[i][0]), plotyScale(deathsdataset[i][1]));
+          qt.insert(p);
+        }
+
+        plotsvg.selectAll("#death").attr("visibility","hidden");
+
+            // if (gridswitch == 2) {
+            //   d3.select('#reveal-quadtree').text('Remove data clusters');
+            //   tree.printTree();
+            //   gridswitch = 1;
+            // } else
+            if (gridswitch == 1) {
+              console.log(qt);
+              tree.clearTree();
+              setTimeout(function() {
+                tree.printTree();
+              }, 300);
+              // gridswitch = 0;
+            } else if (gridswitch == 0) {
+              // d3.select('#reveal-quadtree').text('Clear Cluster Data');
+              tree.clearTree();
+              plotsvg.selectAll("#death").attr("visibility","visible");
+            }
+
+    }
+
+    d3.select('#reveal-quadtree').on('click', function() {gridswitch = 0; printClusters(); });
+    // d3.select('#clustern').on('change', function() {getClusterNum(); });
+    d3.select('#clusterupdate').on('click', function() {gridswitch = 1; getClusterNum(); });
+
+//______________________________________________________________ UPDATING MAP ABOVE ___________________________________________________________________________
+
+//____________________________________________________________ MAP STREET LINES BELOW __________________________________________________________________________
+
+    // print lines for the streets
+    function printStreet() {
+
+      var streetName = "";
+      allnames = [];
+
+      for (var s = 0; s < numStreets; s++) { //actual 528
+
+        street = streets[s];
+
+
+        var line = d3.svg.line()
+        .x(function(d) {return plotxScale(d.x); })
+        .y(function(d) {return plotyScale(d.y); });
+
+        var sline = plotsvg.append("g");
+
+        sline.append("path")
+        .datum(streets[s])
+        .attr("class", "line")
+        .attr("d", line)
+        .attr("fill", "none")
+        .attr("stroke", "black")
+        .attr("stroke-width", "2");
+
+
+        sline.append("text")
+    			.attr("fill", "black")
+    			.attr("font-size", "16px")
+  	  		.attr("dy", ".35em")
+ 		 	    .attr("text-anchor", "middle")
+          .attr("stroke", "none")
+  	  		.attr("transform", "translate("+plotxScale(12.75)+","+plotyScale(12)+") rotate(-24)")
+  			  .text("Broad Street");
+
+          sline.append("text")
+      			.attr("fill", "black")
+      			.attr("font-size", "16px")
+    	  		.attr("dy", ".35em")
+   		 	    .attr("text-anchor", "middle")
+            .attr("stroke", "none")
+    	  		.attr("transform", "translate("+plotxScale(9.15)+","+plotyScale(13.85)+") rotate(-20)")
+    			  .text("Great Marlborough Street");
+
+          sline.append("text")
+      			.attr("fill", "black")
+      			.attr("font-size", "16px")
+    	  		.attr("dy", ".35em")
+   		 	    .attr("text-anchor", "middle")
+            .attr("stroke", "none")
+    	  		.attr("transform", "translate("+plotxScale(12.65)+","+plotyScale(7)+") rotate(-38)")
+    			  .text("Brewer Street");
+
+        sline.append("text")
+    			.attr("fill", "black")
+  	  		.attr("font-size", "16px")
+  		  	.attr("dy", ".35em")
+ 		   	  .attr("text-anchor", "middle")
+          .attr("stroke", "none")
+  			  .attr("transform", "translate("+plotxScale(11.25)+","+plotyScale(17)+") rotate(-10)")
+  	  		.text("Oxford Street");
+
+          sline.append("text")
+      			.attr("fill", "black")
+    	  		.attr("font-size", "16px")
+    		  	.attr("dy", ".35em")
+   		   	  .attr("text-anchor", "middle")
+            .attr("stroke", "none")
+    			  .attr("transform", "translate("+plotxScale(17.35)+","+plotyScale(14)+") rotate(62)")
+    	  		.text("Dean Street");
+
+			  sline.append("text")
+  		  	.attr("fill", "black")
+  			  .attr("font-size", "16px")
+  	  		.attr("dy", ".35em")
+ 		     	.attr("text-anchor", "middle")
+          .attr("stroke", "none")
+          .attr("transform", "translate("+plotxScale(8.25)+","+plotyScale(10.5)+") rotate(60)")
+  		  	.text("Regent Street");
+
+      }
+    }
+
+//____________________________________________________________ MAP STREET LINES ABOVE __________________________________________________________________________
+
+//________________________________________________________________ DEATH DOTS BELOW _____________________________________________________________________________
+
+    function draw(data) {
+      // Store the data-join in a variable `circles`
+      var circles = plotsvg.selectAll("#death") // select all circles in the svg
+        .data(data); // bind the new data to your selection
+
+      // Add entering elements to the update data and append circle elements for each entering element
+      circles.enter()
+        .append('circle')
+        .transition()
+        .duration(1000)
+        .attr("id", "death")
+        .attr("visibility", "visible")
+        .attr("class", function(d) {
+          return d[4] + " " + d[3];
+        })
+        .attr("cx", function(d) {
+          return plotxScale(d[0]);
+        })
+        .attr("cy", function(d) {
+          return plotyScale(d[1]);
+        })
+        .attr("r", 3)
+        .attr("fill", "lightgray").attr("stroke","gray").attr("stroke-width",".5")
+      // .attr("stroke", "black")
+
+      // Remove any exiting elements
+      circles.exit().remove();
+      var newC = "#d3d3d3";
+      var oldS = "3";
+
+      circles.on("mouseover", function(d) {
+        newC = "#d3d3d3";
+        oldS = "3";
+        if (d3.select(this).attr("fill") != "#d3d3d3"){newC = d3.select(this).attr("fill"); oldS = "4"}
+
+          d3.select(this).attr("r", 4).attr("fill", "red")
+          var age = "";
+          if (d[2] == 0) {
+            age = " Age Range: 0-10"
+          } else if (d[2] == 1) {
+            age = " Age Range: 11-20"
+          } else if (d[2] == 2) {
+            age = " Age Range: 21-40"
+          } else if (d[2] == 3) {
+            age = " Age Range: 41-60"
+          } else if (d[2] == 4) {
+            age = " Age Range: 61-80"
+          } else if (d[2] == 5) {
+            age = " Age Range: > 80"
+          }
+          tooltip.html("Gender: "+ d[3] +"<br>"+age)
+          // tooltip.text("Gender: " +d[3]+"    "+ age);
+          return tooltip.style("visibility", "visible").style("font-size", "18px");
+        })
+        .on("mousemove", function() {
+          return tooltip.style("top", (d3.mouse(this)[1] + 375) + "px").style("left", (d3.mouse(this)[0] + 60) + "px");
+        })
+        .on("mouseout", function(d) {
+          d3.select(this).attr("r", oldS).attr("fill", newC).attr("stroke","gray").attr("stroke-width",".5");
+          return tooltip.style("visibility", "hidden");
+        });
+
+
+    };
+
+
+    //print dots to represent the deaths
+    function printDeath(total) {
+
+      deathsdataset = [];
+
+      var totaldeaths = total;
+
+      var death_XCoord = 0;
+      var death_YCoord = 0;
+      var death_age = "";
+      var death_gender = "";
+      var ageclass = "";
+
+      for (var d = 0; d < totaldeaths; d++) {
+        // console.log(deaths[d]);
+        death_XCoord = deaths[d]?.x;
+        death_YCoord = deaths[d]?.y;
+        death_age = deaths[d]?.age;
+        if (deaths[d]?.gender == 1) {
+          death_gender = "female";
+        } else {
+          death_gender = "male";
+        }
+        if (deaths[d]?.age == 0) {
+          ageclass = "age0";
+          agerange_0.push([death_XCoord, death_YCoord, ageclass, death_gender]);
+        } else if (deaths[d]?.age == 1) {
+          ageclass = "age1";
+          agerange_1.push([death_XCoord, death_YCoord, ageclass, death_gender]);
+        } else if (deaths[d]?.age == 2) {
+          ageclass = "age2";
+          agerange_2.push([death_XCoord, death_YCoord, ageclass, death_gender]);
+        } else if (deaths[d]?.age == 3) {
+          ageclass = "age3";
+          agerange_3.push([death_XCoord, death_YCoord, ageclass, death_gender]);
+        } else if (deaths[d]?.age == 4) {
+          ageclass = "age4";
+          agerange_4.push([death_XCoord, death_YCoord, ageclass, death_gender]);
+        } else if (deaths[d]?.age == 5) {
+          ageclass = "age5";
+          agerange_5.push([death_XCoord, death_YCoord, ageclass, death_gender]);
+        }
+
+        deathsdataset.push([death_XCoord, death_YCoord, death_age, death_gender, ageclass]);
+      }
+
+      draw(deathsdataset);
+
+      plotsvg.selectAll("#death")
+        .on("mouseover", function(d) {
+          newC = "#d3d3d3";
+          // oldS = "3";
+          if (d3.select(this).attr("fill") != "#d3d3d3"){newC = d3.select(this).attr("fill"); oldS = "4"}
+          else{oldS = "2"}
+
+          d3.select(this).attr("r", 4).attr("fill", "red")
+          var age = "";
+          if (d[2] == 0) {
+            age = " Ages:  of 0-10"
+          } else if (d[2] == 1) {
+            age = " Ages:  11-20"
+          } else if (d[2] == 2) {
+            age = " Ages:  21-40"
+          } else if (d[2] == 3) {
+            age = " Ages:  41-60"
+          } else if (d[2] == 4) {
+            age = " Ages:  61-80"
+          } else if (d[2] == 5) {
+            age = " Ages:  > 80"
+          }
+          tooltip.html("Gender: "+ d[3] +"<br>"+age)
+          // tooltip.text(d[3] + age);
+          return tooltip.style("visibility", "visible").style("font-size", "18px");
+        })
+        .on("mousemove", function() {
+          return tooltip.style("top", (d3.mouse(this)[1] + 350) + "px").style("left", (d3.mouse(this)[0] + 60) + "px");
+        })
+        .on("mouseout", function(d) {
+          d3.select(this).attr("r", oldS).attr("fill", newC).attr("stroke","gray").attr("stroke-width",".5");
+          return tooltip.style("visibility", "hidden");
+        });
+    }
+
+    plotsvg.selectAll("#death")
+      .on("mouseover", function(d) {
+        d3.select(this).attr("r", 4).attr("fill", "red")
+        var age = "";
+        if (d[2] == 0) {
+          age = " Ages: 0-10"
+        } else if (d[2] == 1) {
+          age = " Ages: 11-20"
+        } else if (d[2] == 2) {
+          age = " Ages:  21-40"
+        } else if (d[2] == 3) {
+          age = " Ages:  41-60"
+        } else if (d[2] == 4) {
+          age = " Ages:  61-80"
+        } else if (d[2] == 5) {
+          age = " Ages:  > 80"
+        }
+        // tooltip.text(d[3] + age);
+        tooltip.html("Gender: "+ d[3] +"<br>"+age)
+        return tooltip.style("visibility", "visible").style("font-size", "18px");
+      })
+      .on("mousemove", function() {
+        return tooltip.style("top", (d3.mouse(this)[1] + 350) + "px").style("left", (d3.mouse(this)[0] + 60) + "px");
+      })
+      .on("mouseout", function(d) {
+        d3.select(this).attr("r", 3).attr("fill", "lightgray").attr("stroke","gray").attr("stroke-width",".5");
+        return tooltip.style("visibility", "hidden");
+      });
+//________________________________________________________________ DEATH DOTS ABOVE _____________________________________________________________________________
+
+//____________________________________________________________________ TOWN  BELOW _____________________________________________________________________________
+
+    // var maprect = d3.svg.symbol().type('square').size(600);
+    var brewdata = [[13.4,12.18]]
+
+    plotsvg.selectAll('rect.brewery')
+    .data(brewdata)
+    .enter()
+    // .append('text')
+    // .text("Brewery")
+    .append('rect')
+    // .attr("d", mapsquare)
+    .attr("class", "brewery")
+    .attr("height", 48)
+    .attr("width", 30)
+    .attr("transform",function(d){return "translate("+ plotxScale(d[0]) +"," + plotyScale(d[1]) + ")rotate(-28)";})
+    .attr("fill", "#c7e9b4");
+
+    var mapsquare = d3.svg.symbol().type('square').size(1500);
+    var housedata = [[11.1,13.5]];
+
+    plotsvg.selectAll('path.house')
+    .data(housedata)
+    .enter()
+    .append('path')
+    .attr("d", mapsquare)
+    .attr("class", "house")
+    .attr("transform",function(d){return "translate("+ plotxScale(d[0]) +"," + plotyScale(d[1]) + ")rotate(-25)";})
+    .attr("fill", "#253494");
+
+
+//____________________________________________________________________ PUMPS  BELOW _____________________________________________________________________________
+
+    //print dots to represent the pumps
+    function printPump() {
+      var totalpumps = 13;
+
+      var pump_XCoord = 0;
+      var pump_YCoord = 0;
+
+      for (var p = 0; p < totalpumps; p++) {
+        pump_XCoord = pumps[p]?.x;
+        pump_YCoord = pumps[p]?.y;
+
+        pumpsdataset.push([pump_XCoord, pump_YCoord]);
+      }
+
+    var cross = d3.svg.symbol().type('cross').size(100);
+
+    plotsvg.selectAll('path.pump')
+    .data(pumpsdataset)
+    .enter()
+      .append('path')
+      .attr("d", cross)
+      .attr("class", "pump")
+      .attr("transform",function(d){return "translate("+ plotxScale(d[0]) +"," + plotyScale(d[1]) + ")";})
+      .attr("fill", "royalblue");
+}
+
+    //when div about HIGHLIGHTING water pumps is clicked
+    d3.select("div.pump").on("click", function() {
+      d3.selectAll(".pump")
+        .transition()
+        .duration(1000)
+        .each("start", function() {
+          d3.select(this) // selects 'this', the current element
+            .attr("fill", "royalblue")
+            .attr("size", 125); //sets radius of 'this' to 3
+        })
+        .transition()
+        .duration(1000)
+        .attr("size", "100");
+    });
+//____________________________________________________________________ PUMPS ABOVE ______________________________________________________________________________
+//____________________________________________________________________ CLUSTER BELOW ___________________________________________________________________________
+
+//____________________________________________________________________ CLUSTER ABOVE ___________________________________________________________________________
+
+//___________________________________________________________________ BAR CHART BELOW_______________________________________________________________________________
+
+    function daycount(day) {
+      for (d = 0; d < deathdays.length; d++) {
+        if (deathdays[d].date == day) {
+          // console.log(deathdays[d].deaths + " people died on " + deathdays[d].date + " 1854.")
+          return deathdays[d].deaths + " people died on " + deathdays[d].date + " 1854."
+        }
+      }
+    }
+
+    function showDays() {
+      var barh = 950;
+      var barw = 350;
+
+      var barPadding = 1;
+      var padding = 25;
+      var days = 42;
+      var date = "";
+      var numdeaths = 0;
+      var datelist = [];
+      var deathslist = [];
+
+      for (var d = 0; d < days; d++) {
+        date = deathdays[d]?.date;
+        numdeaths = deathdays[d]?.deaths;
+        datelist.push([date]);
+        deathslist.push([numdeaths]);
+      }
+
+      var barsvg = d3.select("#barchart")
+        .append("svg")
+        .attr("width", barw)
+        .attr("height", barh);
+
+      var bargroup = barsvg.append('g').attr('class', 'bar');
+
+
+      var baryaxisScale = d3.scale.ordinal()
+        .domain(datelist)
+        .rangeRoundBands([0, (barh - 30)], 0.05);
+
+      var baryScale = d3.scale.ordinal()
+        .domain(d3.range(days))
+        .rangeRoundBands([0, (barh - 30)], 0.05);
+
+      var barxScale = d3.scale.linear()
+        .domain([0, d3.max(deathslist, s => +s)])
+        .range([0, barw]);
+
+      var tooltip2 = d3.select("#barchart")
+        .append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("z-index", "10")
+        .style("visibility", "hidden");
+
+
+      //bar chart with labels52
+      bargroup.selectAll("rect")
+        .data(deathdays)
+        .enter()
+        .append("rect")
+        .attr('class', 'deathbar')
+        .attr({
+          x: function(d) {
+            return 60;
+            // barw - (d * 4) - (padding+25)
+          },
+          y: function(d, i) {
+            return baryScale(i);
+          },
+          height: baryScale.rangeBand(),
+          width: function(d) {
+            var death = d.deaths
+            return death * 2;
+          },
+          fill: function(d) {
+            var death = d.deaths
+            return "rgb(123,50," + (d.deaths * 10) + ")";
+          }
+        })
+        .on("mouseover", function(d) {
+          tooltip2.text(daycount(d.date));
+          d3.select(this).attr("fill", "rgb(0,136,55)");
+          return tooltip2.style("visibility", "visible").style("font-size", "18px");
+        })
+        .on("mousemove", function() {
+          return tooltip2.style("top", (d3.mouse(this)[1] + 130) + "px").style("left", (d3.mouse(this)[0] + 40) + "px");
+        })
+        .on("mouseout", function(d) {
+          d3.select(this).attr("fill", "rgb(123,50," + (d.deaths * 10) + ")");
+          return tooltip2.style("visibility", "hidden");
+        })
+        .on("click", function(d) {
+          reprintmap(d);
+          updatebar(d.date)
+        });
+
+      function updatebar(date) {
+        resetbar();
+        // For each check box:
+        barsvg.selectAll('rect.deathbar').each(function(d) {
+          // If the box is check, I show the group
+          if (d.date === date) {
+            // console.log("SELECTED!")
+            d3.select(this).attr("fill", "rgb(0,136,55)");
+            d3.select(this).on("mouseout", function() {
+              d3.select(this).attr("fill", "rgb(0,136,55)");
+            })
+            // Otherwise I hide it
+          } else {
+            d3.select(this).on("mouseout", function() {
+              d3.select(this).attr("fill", "rgb(123,50," + (d.deaths * 10) + ")");
+            })
+          }
+        });
+
+      }
+
+
+      bargroup.selectAll("text")
+        .data(deathslist)
+        .enter()
+        .append("text")
+        .text(function(d) {
+          return d;
+        })
+        // .attr("class", "deathtext")
+        .attr("y", function(d, i) {
+          return baryScale(i) + baryScale.rangeBand() / 1.5;
+        })
+        .attr("x", function(d) {
+          if (d < 5) {
+            return +d + (padding + 44);
+          } else if (d > 140) {
+            return d;
+          } else if (d > 120) {
+            return barw - 150;
+          } else {
+            return +d + 60;
+          }
+        })
+        .attr("fill", function(d) {
+          if (d < 5) {
+            return "black";
+          } else {
+            return "white";
+          }
+        })
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "11px")
+        .attr("text-anchor", "middle")
+        .on("mouseover", function(d) {
+          tooltip2.text(daycount(d.date));
+          return tooltip2.style("visibility", "visible").style("font-size", "18px");
+        })
+        .on("mousemove", function() {
+          return tooltip2.style("top", (d3.mouse(this)[1] + 130) + "px").style("left", (d3.mouse(this)[0] + 40) + "px");
+        })
+        .on("mouseout", function() {
+          return tooltip2.style("visibility", "hidden");
+        })
+        .on("click", function(d) {
+          reprintmap(d);
+          updatebar(d.date)
+        });
+
+
+      barsvg.append("g")
+        .attr("class", "bar")
+        .attr("transform", "translate(" + (60) + ",0)")
+
+      //Define Y axis
+      var yAxis = d3.svg.axis()
+        .scale(baryaxisScale)
+        .orient("left");
+
+
+      //Define X axis
+      var xAxis = d3.svg.axis()
+        .scale(barxScale)
+        .orient("bottom")
+        .ticks(10);
+
+
+      //Create Y axis
+      barsvg.append("g")
+        .attr("class", "y axis deathtext")
+        .attr("transform", "translate(" + (60) + ",0)")
+        .call(yAxis)
+        .selectAll("text")
+        .on("click", function(d) {
+          d3.select(this).attr("fill", "rgb(0,136,55)")
+          day = d;
+          for (d = 0; d < deathdays.length; d++) {
+            if (deathdays[d].date == day) {
+              console.log("TEST: Should've updated");
+              // console.log(deathdays[d].date);
+              updatebar(deathdays[d].date);
+              reprintmap(deathdays[d]);
+            }
+          }
+        })
+        .on("mouseover", function(d) {
+          d3.select(this).attr("fill", "rgb(0,136,55)");
+        })
+        .on("mouseout", function(d) {
+              // d3.select(this).attr("fill", "black");
+
+          for (d = 0; d < deathdays.length; d++) {
+          if (deathdays[d].date == d) {
+            d3.select(this).attr("fill", "rgb(0,136,55)");
+          } else {
+            d3.select(this).attr("fill", "black");
+          }
+        }
+
+        });
+
+
+      //Create X axis
+      barsvg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(50," + (barh - (padding+20)) + ")")
+        .call(xAxis);
+
+      //y axis label
+      barsvg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "end")
+        .attr("x", -300)
+        .attr("y", 12)
+        .attr("transform", "rotate(-90)")
+        .text("Days in August and September of 1874");
+
+      // x axis label
+      barsvg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "end")
+        .attr("x", barw)
+        .attr("y", barh - 6)
+        .text("Number of Deaths per Day");
+
+    }
+//___________________________________________________________________ BAR CHART ABOVE _______________________________________________________________________________
+
+//______________________________________________________________ Death by Sex CHART BELOW __________________________________________________________________________
+var deathbysex = [];
+function deadbysex(){
+
+  var dbsh = 400;
+  var dbsw = 300;
+  var padding = 20;
+
+  var fdeaths = [];
+  var mdeaths = [];
+  var genders = ["female", "male"];
+
+  // //Create scale functions
+    var dbsyScale = d3.scale.linear()
+      // .domain([0, d3.max(deathbysex, s => +s)])
+      .domain([300, 0])
+      .range([0, dbsh-(padding)]);
+
+    var dbsxScale = d3.scale.ordinal()
+      .domain(genders)
+      .rangeRoundBands([5, (dbsw)], 0.75);
+
+    //Create SVG element
+  var dbssvg = d3.select("#deathbysexchart")
+    .append("svg")
+    .attr("width", dbsw)
+    .attr("height", dbsh);
+
+  //Define Y axis
+  var yAxis = d3.svg.axis()
+    .scale(dbsyScale)
+    .orient("left");
+
+  //Define X axis
+  var xAxis = d3.svg.axis()
+    .scale(dbsxScale)
+    .orient("bottom");
+
+  //Create Y axis
+  dbssvg.append("g")
+    .attr("class", "y axis")
+    .attr("transform", "translate(" + (60) + ",5)")
+    .call(yAxis)
+    .selectAll("text");
+
+  //Create X axis
+  dbssvg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(40," + (dbsh - (padding)) + ")")
+    .call(xAxis);
+
+  //y axis label
+  dbssvg.append("text")
+    .attr("class", "y label")
+    .attr("text-anchor", "end")
+    .attr("x", -(dbsh/2)+30)
+    .attr("y",20)
+    .attr("transform", "rotate(-90)")
+    .text("Number of Deaths");
+
+//separte data into male and female arrays
+  for (var d = 0; d < 571; d++) {
+    if (deaths[d]?.gender == 1) {
+      fdeaths.push([d]);
+    } else if (deaths[d]?.gender == 0){
+      mdeaths.push([d]);
+    }
+  }
+
+  //create new array of numdeaths by death_gender
+  deathbysex = [fdeaths.length, mdeaths.length];
+
+  // console.log(deathbysex);
+  var sexbar = dbssvg.append("g");
+
+  sexbar.selectAll('rect.sexbar')
+    .data(deathbysex)
+    .enter()
+    .append('rect')
+    .attr('class','sexbar')
+    .attr('height', function(d) {return (d*1.2);})
+    .attr('x', function(d, i) {return i * (dbsw / deathbysex.length)+80})
+    .attr('width', function(d) {return dbsw / deathbysex.length - (padding+60)})
+    .attr('y', function(d) { return dbsh-((d*1.2)+padding) })
+    .attr("fill", "lightblue");
+
+      sexbar.selectAll("text")
+        .data(deathbysex)
+        .enter()
+        .append("text")
+        .text(function(d) {return d;})
+        .attr("y", function(d) {return dbsh - (d+padding+40);})
+        .attr("x", function(d,i) {return i * (dbsw / deathbysex.length)+120})
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "15px")
+        .attr("text-anchor", "middle");
+
+
+}
+
+//______________________________________________________________ Death by Age CHART BELOW __________________________________________________________________________
+function deadbyage() {
+
+  var dbah = 400;
+  var dbaw = 450;
+  var padding = 20;
+
+  var agerange0 = [];
+  var agerange1 = [];
+  var agerange2 = [];
+  var agerange3 = [];
+  var agerange4 = [];
+  var agerange5 = [];
+
+  var ages = ["Ages 0-10", "Ages 11-20", "Ages 21-40", "Ages 41-60", "Ages 61-80", "Ages > 80"];
+
+  // //Create scale functions
+    var dbayScale = d3.scale.linear()
+      // .domain([0, d3.max(deathbysex, s => +s)])
+      .domain([180, 0])
+      .range([0, dbah-(padding)]);
+
+    var dbaxScale = d3.scale.ordinal()
+      .domain(ages)
+      .rangeRoundBands([0, (dbaw-30)], 0.3);
+
+    //Create SVG element
+  var dbasvg = d3.select("#deathbyagechart")
+    .append("svg")
+    .attr("width", dbaw)
+    .attr("height", dbah);
+
+  //Define Y axis
+  var yAxis = d3.svg.axis()
+    .scale(dbayScale)
+    .orient("left");
+
+  //Define X axis
+  var xAxis = d3.svg.axis()
+    .scale(dbaxScale)
+    .orient("bottom");
+
+  //Create Y axis
+  dbasvg.append("g")
+    .attr("class", "y axis")
+    .attr("transform", "translate(" + (50) + ",5)")
+    .call(yAxis)
+    .selectAll("text");
+
+  //Create X axis
+  dbasvg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(50," + (dbah - (padding)) + ")")
+    .call(xAxis);
+
+  //y axis label
+  dbasvg.append("text")
+    .attr("class", "y label")
+    .attr("text-anchor", "end")
+    .attr("x", -(dbah/2)+30)
+    .attr("y",20)
+    .attr("transform", "rotate(-90)")
+    .text("Number of Deaths");
+
+//separte data into male and female arrays
+  for (var d = 0; d < 571; d++) {
+    if (deaths[d]?.age == 0) {
+      agerange0.push([d]);
+    } else if (deaths[d]?.age == 1){
+      agerange1.push([d]);
+    }else if (deaths[d]?.age == 2){
+      agerange2.push([d]);
+    }else if (deaths[d]?.age == 3){
+      agerange3.push([d]);
+    }else if (deaths[d]?.age == 4){
+      agerange4.push([d]);
+    }else if (deaths[d]?.age == 5){
+      agerange5.push([d]);
+    }
+
+  }
+
+  //create new array of numdeaths by death_gender
+  agedeaths = [agerange0.length, agerange1.length, agerange2.length, agerange3.length, agerange4.length, agerange5.length];
+
+  // console.log(deathbysex);
+  var agebar = dbasvg.append("g");
+
+  agebar.selectAll('rect')
+    .data(agedeaths)
+    .enter()
+    .append('rect')
+    .attr('class','agebar')
+    .attr('height', function(d) {return (d*2);})
+    .attr('x', function(d, i) {return (i/1.1)* (dbaw / agedeaths.length)+65})
+    .attr('width', function(d) {return dbaw / agedeaths.length - (padding+15)})
+    .attr('y', function(d) { return dbah-((d*2)+padding) })
+    .attr("fill", "lightblue");
+
+      agebar.selectAll("text")
+        .data(agedeaths)
+        .enter()
+        .append("text")
+        .text(function(d) {return d;})
+        .attr("y", function(d) {return dbah - (d*2);})
+        .attr("x", function(d,i) {return (i/1.1) * (dbaw / agedeaths.length)+85})
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "15px")
+        .attr("text-anchor", "middle");
+}
+
+
+  </script>
+
+
+</body>
+
+</html>
